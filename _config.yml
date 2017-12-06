@@ -3,9 +3,9 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Your Title
-subtitle: This is hexo theme
-author: John Doe
+title: JayZ Blog
+subtitle: 抱之以虚 将之以勤 无不可达之境也
+author: JayZhao
 language:
 timezone:
 
@@ -19,23 +19,23 @@ permalink_defaults:
 #Custom Setting Start
 
 # Site settings
-SEOTitle: Beantech | 豆科技
-email: beantech@gmail.com
+SEOTitle: JayZhaoBoy
+email: jayzhaoboy@gmail.com
 description: ""
 keyword: ""
-header-img: img/header_img/home-bg-2-dark.png
+header-img: img/header_img/tag-bg.png
 signature: true #show signature
-signature-img: img/signature/BeanTechSign-white.png 
+signature-img: img/signature/jay.gif 
 
 
 # SNS settings
 # RSS: false
 # weibo_username:     Demonbaneen
 # zhihu_username:     Demonbane
-github_username:    YenYuHsuan
+github_username:    JayZhaoBoy
 # twitter_username:   Demonbane_x
-facebook_username:  YenYuHsuan
-linkedin_username:  yu-hsuan-yen
+#facebook_username:  YenYuHsuan
+#linkedin_username:  yu-hsuan-yen
 
 # Build settings
 anchorjs: true                          # if you want to customize anchor. check out line:181 of `post.html`
@@ -86,15 +86,6 @@ friends: [
     {
         title: "Bean Tech",
         href: "http://beantech.org"
-    },{
-        title: "Kaijun's Blog",
-        href: "http://blog.kaijun.rocks"
-    },{
-        title: "Hux Blog",
-        href: "http://huangxuan.me"
-    },{
-        title: "It Helps SEO",
-        href: "#"
     }
 ]
 
@@ -177,5 +168,5 @@ sitemap:
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repository: https://github.com/YenYuHsuan/hexo-theme-beantech.git
-  branch: gh-page
+  repo: https://github.com/JayZhaoBoy/JayZhaoBoy.github.io.git 
+  branch: master
