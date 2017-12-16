@@ -1,8 +1,8 @@
 ---
 layout: "archive"
 title: "Archives"
-header-img: "img/header_img/archive-bg.png"
+header-img: "img/header_img/archive-bg.jpg"
 comments: false
 date: 2017-03-20 20:49:56
-description: "Hey, this is archives"
+description: "喏，你要的都在这儿了。"
 ---
