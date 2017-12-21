@@ -23,7 +23,7 @@ SEOTitle: JayZhao的博客 | JayZ Blog
 email: jayzhaoboy@gmail.com
 description: "Android, Blog, JayZ"
 keyword: ""
-header-img: img/header_img/photo.jpeg
+header-img: img/header_img/home-bg.jpeg
 signature: false #show signature
 signature-img: img/signature/
 
@@ -61,7 +61,7 @@ ga_domain: jayzhaoboy.cn
 # Sidebar settings
 sidebar: true                       # whether or not using Sidebar.
 sidebar-about-description: "一个不想当设计师的Google脑残粉"
-sidebar-avatar: img/mpumelelo-header.jpg      # use absolute URL, seeing it's used in both `/` and `/about/`
+sidebar-avatar: img/header.jpeg     # use absolute URL, seeing it's used in both `/` and `/about/`
 widgets:
 - featured-tags
 - short-about

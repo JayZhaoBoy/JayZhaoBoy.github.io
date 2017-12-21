@@ -3,7 +3,7 @@ layout: "about"
 title: "About"
 date: 2016-04-21 04:48:33
 description: "J, 然不同。"
-header-img: "img/header_img/mpumelelo.jpg"
+header-img: "img/header_img/about-bg.jpg"
 comments: true
 ---
 
