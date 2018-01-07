@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Android, Blog, JayZ">
+    <meta name="keyword"  content="">
+    <link rel="shortcut icon" href="/img/j_icon.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          HashSet猜想及JDK 8.0HashMap源码研究 - JayZhao的博客 | JayZ Blog
+        
+    </title>
+
+    <link rel="canonical" href="http://jayzhaoboy.cn/2017/12/21/Hashset猜想/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/code-bg2.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Java" title="Java">Java</a>
+                            
+                              <a class="tag" href="/tags/#源码" title="源码">源码</a>
+                            
+                        </div>
+                        <h1>HashSet猜想及JDK 8.0HashMap源码研究</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by JayZhao on
+                            2017-12-21
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">JayZ Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h3><span id="背景">背景</span></h3><p>我们都知道<code>HashMap</code>和<code>HashSet</code>的基本特性，这点我就不赘述了。关于使用<code>HashSet</code>所需要注意的一个有意思的场景相信大家也都知道，就是避免对存储对象的修改，放出出现读取异常。言语总是无法表达清晰，代码伺候：</p>
+<hr>
+<p><code>1.</code>首先我们定义一个存储的目标对象 为了我们方便我们接下来的猜想我们要重写hashCode和equals方法</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> TestBean &#123;</span><br><span class="line">    <span class="keyword">int</span> <span class="keyword">count</span>;</span><br><span class="line">    <span class="keyword">public</span> TestBean(<span class="keyword">int</span> <span class="keyword">count</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">this</span>.<span class="keyword">count</span> = <span class="keyword">count</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> String toString()</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"属性:"</span> + <span class="keyword">count</span> + <span class="string">")"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">boolean</span> equals(Object obj)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (obj <span class="keyword">instanceof</span> TestBean)</span><br><span class="line">        &#123;</span><br><span class="line">            TestBean r = (TestBean)obj;</span><br><span class="line">            <span class="keyword">if</span> (r.<span class="keyword">count</span> == <span class="keyword">this</span>.<span class="keyword">count</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> hashCode()</span><br><span class="line">    &#123;</span><br><span class="line">        System.out.<span class="keyword">println</span>(<span class="keyword">count</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.<span class="keyword">count</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> <code>2.</code>接下来就是测试代码，也非常简单<br><figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">TestHashSet2</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span>(<span class="params">String[] args</span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        HashSet&lt;TestBean&gt; hs = <span class="keyword">new</span> HashSet&lt;TestBean&gt;();</span><br><span class="line">  hs.<span class="keyword">add</span>(<span class="keyword">new</span> TestBean(<span class="number">1</span>));</span><br><span class="line">  hs.<span class="keyword">add</span>(<span class="keyword">new</span> TestBean(<span class="number">2</span>));</span><br><span class="line">  hs.<span class="keyword">add</span>(<span class="keyword">new</span> TestBean(<span class="number">3</span>));</span><br><span class="line">  hs.<span class="keyword">add</span>(<span class="keyword">new</span> TestBean(<span class="number">4</span>));</span><br><span class="line">  System.<span class="keyword">out</span>.println(hs);</span><br><span class="line">  <span class="comment">//取出第一个元素</span></span><br><span class="line">  Iterator&lt;TestBean&gt; it = hs.iterator();</span><br><span class="line">  TestBean first = (TestBean)it.next(); <span class="comment">//first指向集合的第一个元素</span></span><br><span class="line"> <span class="comment">//修改第一个元素的count属性赋值  first.count = 4;</span></span><br><span class="line">  <span class="comment">//再次输出HashSet</span></span><br><span class="line">  System.<span class="keyword">out</span>.println(hs);</span><br><span class="line">  hs.<span class="keyword">remove</span>(<span class="keyword">new</span> TestBean(<span class="number">4</span>));</span><br><span class="line">  System.<span class="keyword">out</span>.println(<span class="string">"是否包含count为4的对象"</span> + hs.contains(<span class="keyword">new</span> TestBean(<span class="number">4</span>)));</span><br><span class="line">  System.<span class="keyword">out</span>.println(<span class="string">"是否包含count为1的对象"</span> + hs.contains(<span class="keyword">new</span> TestBean(<span class="number">1</span>)));</span><br><span class="line">  System.<span class="keyword">out</span>.println(<span class="string">"是否包含count为2的对象"</span> + hs.contains(<span class="keyword">new</span> TestBean(<span class="number">2</span>)));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>运行结果如下：</p>
+<p><img src="log1.png" alt="log1"></p>
+<p>有些人可能觉得结果很神奇，有些人可能早就猜到了结果，但是原因是为什么呢？网上搜了一下也没找到想要的答案，有些人一看到new就说是堆栈、引用等等造成的，但并不能说出个所以然来，而我并不这么认为，于是开始了我的猜想认证之旅，各位乘客请系好安全带，我要开车了～</p>
+<p>我们先进去进入HashSet的<code>contains()</code>方法中看看都干了写啥：</p>
+<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line">  * Returns &lt;tt&gt;<span class="literal">true</span>&lt;/tt&gt; <span class="keyword">if</span> this <span class="keyword">set</span> <span class="keyword">contains</span> <span class="keyword">the</span> specified element.</span><br><span class="line">  * More formally, returns &lt;tt&gt;<span class="literal">true</span>&lt;/tt&gt; <span class="keyword">if</span> <span class="keyword">and</span> only <span class="keyword">if</span> this <span class="keyword">set</span></span><br><span class="line">  * <span class="keyword">contains</span> an element &lt;tt&gt;e&lt;/tt&gt; such <span class="keyword">that</span></span><br><span class="line">  * &lt;tt&gt;(o==null&amp;nbsp;?&amp;nbsp;e==null&amp;nbsp;:&amp;nbsp;o.<span class="keyword">equals</span>(e))&lt;/tt&gt;.</span><br><span class="line">  *</span><br><span class="line">  * @param o element <span class="keyword">whose</span> presence <span class="keyword">in</span> this <span class="keyword">set</span> <span class="keyword">is</span> <span class="keyword">to</span> be tested</span><br><span class="line">  * @<span class="literal">return</span> &lt;tt&gt;<span class="literal">true</span>&lt;/tt&gt; <span class="keyword">if</span> this <span class="keyword">set</span> <span class="keyword">contains</span> <span class="keyword">the</span> specified element</span><br><span class="line">  */</span><br><span class="line"> public <span class="built_in">boolean</span> <span class="keyword">contains</span>(Object o) &#123;</span><br><span class="line"><span class="built_in">     return</span> map.containsKey(o);</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>这里调用了HashMap的<code>containsKey</code>方法，我们都知道<code>HashSet</code>本来就是<code>HashMap</code>实现的，所以借这个机会正好复看一下<code>HashMap</code>的源码我们进入<code>containsKey(o)</code>方法：<br><figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * Returns &lt;tt&gt;<span class="literal">true</span>&lt;/tt&gt; <span class="keyword">if</span> this map <span class="keyword">contains</span> a mapping <span class="keyword">for</span> <span class="keyword">the</span></span><br><span class="line"> * specified key.</span><br><span class="line"> *</span><br><span class="line"> * @param   key   The key <span class="keyword">whose</span> presence <span class="keyword">in</span> this map <span class="keyword">is</span> <span class="keyword">to</span> be tested</span><br><span class="line"> * @<span class="literal">return</span> &lt;tt&gt;<span class="literal">true</span>&lt;/tt&gt; <span class="keyword">if</span> this map <span class="keyword">contains</span> a mapping <span class="keyword">for</span> <span class="keyword">the</span> specified</span><br><span class="line"> * key.</span><br><span class="line"> */</span><br><span class="line">public <span class="built_in">boolean</span> containsKey(Object key) &#123;</span><br><span class="line"><span class="built_in">    return</span> getNode(hash(key), key) != null;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>继续</p>
+<figure class="highlight q"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line">  * Implements Map.<span class="built_in">get</span> <span class="built_in">and</span> related methods</span><br><span class="line">  *</span><br><span class="line">  * @param hash hash for <span class="built_in">key</span></span><br><span class="line">  * @param <span class="built_in">key</span> the <span class="built_in">key</span></span><br><span class="line">  * @return the node, <span class="built_in">or</span> <span class="built_in">null</span> if none</span><br><span class="line">  */</span><br><span class="line"> final Node&lt;K,V&gt; getNode(<span class="type">int</span> hash, Object <span class="built_in">key</span>) &#123;</span><br><span class="line">     Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; <span class="built_in">first</span>, e; <span class="type">int</span> n; K k;</span><br><span class="line">     if ((tab = table) != <span class="built_in">null</span> &amp;&amp; (n = tab.length) &gt; <span class="number">0</span> &amp;&amp;</span><br><span class="line">         (<span class="built_in">first</span> = tab[(n - <span class="number">1</span>) &amp; hash]) != <span class="built_in">null</span>) &#123;</span><br><span class="line">         if (<span class="built_in">first</span>.hash == hash &amp;&amp; <span class="comment">// always check first node</span></span><br><span class="line">             ((k = <span class="built_in">first</span>.<span class="built_in">key</span>) == <span class="built_in">key</span> || (<span class="built_in">key</span> != <span class="built_in">null</span> &amp;&amp; <span class="built_in">key</span>.equals(k))))</span><br><span class="line">             return <span class="built_in">first</span>;</span><br><span class="line">         if ((e = <span class="built_in">first</span>.<span class="built_in">next</span>) != <span class="built_in">null</span>) &#123;</span><br><span class="line">             if (<span class="built_in">first</span> instanceof TreeNode)</span><br><span class="line">                 return ((TreeNode&lt;K,V&gt;)<span class="built_in">first</span>).getTreeNode(hash, <span class="built_in">key</span>);</span><br><span class="line">             <span class="keyword">do</span> &#123;</span><br><span class="line">                 if (e.hash == hash &amp;&amp;</span><br><span class="line">                     ((k = e.<span class="built_in">key</span>) == <span class="built_in">key</span> || (<span class="built_in">key</span> != <span class="built_in">null</span> &amp;&amp; <span class="built_in">key</span>.equals(k))))</span><br><span class="line">                     return e;</span><br><span class="line">             &#125; <span class="keyword">while</span> ((e = e.<span class="built_in">next</span>) != <span class="built_in">null</span>);</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line">     return <span class="built_in">null</span>;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>源码就是源码，一看就头大，因为有时候为了源码的简洁就会导致代码的阅读性变低，习惯就好哈哈，而且JDK 8.0的<code>HashMap</code>的源码还是有一些改动的。详细介绍跳转—<a href="https://tech.meituan.com/java-hashmap.html" target="_blank" rel="noopener">Java 8系列之重新认识HashMap</a>。我就大概简单介绍下：<br>HashMap的实现是<code>数组加链表</code>的数据结构，我们先通过一张图来看一下HashMap的结构</p>
+<p><img src="hashMap2.png" alt="hashMap内存结构图"><br>结合图我们看一下首先<code>Node&lt;K,V&gt;[] tab</code>表示的是一个<code>Node&lt;K,V</code>类型的数组，就是图中的数组。<code>tab</code>是的HashMap中一个非常重要的字段，叫做<code>哈希桶数组</code>。我们注意到代码中有个<code>TreeNode</code>类，其实就是图中的红黑树结构，感兴趣的同学可以深入了解一下。所以上面的代码其实简单来讲就是</p>
+<blockquote>
+<p>对HashMap存储的数据结构的遍历</p>
+</blockquote>
+<p>当时主要存在的两个疑点是</p>
+<ul>
+<li><code>tab[(n - 1) &amp; hash]</code>。这是个什么意思呢？</li>
+<li><code>Node&lt;K,V&gt;</code>又是个啥呢？</li>
+</ul>
+<p>要弄明白第一个问题我们要先回到<code>containsKey()</code>方法看看，我们发现这里调用了<code>hash(key)</code>，我们进入hash方法看一下：</p>
+<figure class="highlight processing"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">final</span> <span class="built_in">int</span> hash(<span class="keyword">Object</span> <span class="built_in">key</span>) &#123;</span><br><span class="line">     <span class="built_in">int</span> h;</span><br><span class="line">     <span class="comment">//分解下来就是 1. h = key.hashCode()  </span></span><br><span class="line">     <span class="comment">//           2. h ^ (h &gt;&gt;&gt; 16)</span></span><br><span class="line">     <span class="keyword">return</span> (<span class="built_in">key</span> == <span class="keyword">null</span>) ? <span class="number">0</span> : (h = <span class="built_in">key</span>.hashCode()) ^ (h &gt;&gt;&gt; <span class="number">16</span>);</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>代码十分简单，其实就是对传入的key的哈希值进行二次运算, 要不咋说自己菜呢，看到这里依然是懵逼状态，然后呢？别着急下面这张图你看完绝对就明白了</p>
+<p><img src="hashMap1.png" alt="hashMap哈希算法例图"><br>首先HashMap中的哈希桶数组也就是tab总是一个合数，<code>h&amp; (length-1)运算等价于对length取模，也就是h%length，但是&amp;比%具有更高的效率。</code>就是比如：<br><figure class="highlight lsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">length = <span class="number">16</span></span><br><span class="line"></span><br><span class="line">h = <span class="number">1</span> </span><br><span class="line">h&amp; (length<span class="number">-1</span>) = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">h = <span class="number">2</span></span><br><span class="line">h&amp; (length<span class="number">-1</span>) = <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">h = <span class="number">17</span></span><br><span class="line">h&amp; (length<span class="number">-1</span>) = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">h = <span class="number">18</span></span><br><span class="line">h&amp; (length<span class="number">-1</span>) = <span class="number">2</span>;</span><br></pre></td></tr></table></figure></p>
+<p>是不是非常清晰了～我们日常的使用length的值都不会太大，这样的话就能保证考虑到高低Bit都参与到Hash的计算中，大大提升效率。</p>
+<p>那好我们接着来说说这个<code>Node&lt;K, V&gt;</code>是啥～<br><figure class="highlight processing"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Basic hash bin node, used for most entries.  (See below for</span></span><br><span class="line"><span class="comment"> * TreeNode subclass, and in LinkedHashMap for its Entry subclass.)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">static</span> class Node&lt;K,V&gt; implements Map.Entry&lt;K,V&gt; &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="built_in">int</span> hash;</span><br><span class="line">    <span class="keyword">final</span> K <span class="built_in">key</span>;</span><br><span class="line">    V value;</span><br><span class="line">    Node&lt;K,V&gt; next;</span><br><span class="line"></span><br><span class="line">    Node(<span class="built_in">int</span> hash, K <span class="built_in">key</span>, V value, Node&lt;K,V&gt; next) &#123;</span><br><span class="line">        <span class="keyword">this</span>.hash = hash;</span><br><span class="line">        <span class="keyword">this</span>.<span class="built_in">key</span> = <span class="built_in">key</span>;</span><br><span class="line">        <span class="keyword">this</span>.value = value;</span><br><span class="line">        <span class="keyword">this</span>.next = next;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> K getKey()        &#123; <span class="keyword">return</span> <span class="built_in">key</span>; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> V getValue()      &#123; <span class="keyword">return</span> value; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">String</span> toString() &#123; <span class="keyword">return</span> <span class="built_in">key</span> + <span class="string">"="</span> + value; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="built_in">int</span> hashCode() &#123;</span><br><span class="line">        <span class="keyword">return</span> Objects.hashCode(<span class="built_in">key</span>) ^ Objects.hashCode(value);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> V setValue(V newValue) &#123;</span><br><span class="line">        V oldValue = value;</span><br><span class="line">        value = newValue;</span><br><span class="line">        <span class="keyword">return</span> oldValue;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="built_in">boolean</span> equals(<span class="keyword">Object</span> o) &#123;</span><br><span class="line">        <span class="keyword">if</span> (o == <span class="keyword">this</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        <span class="keyword">if</span> (o <span class="keyword">instanceof</span> Map.Entry) &#123;</span><br><span class="line">            Map.Entry&lt;?,?&gt; e = (Map.Entry&lt;?,?&gt;)o;</span><br><span class="line">            <span class="keyword">if</span> (Objects.equals(<span class="built_in">key</span>, e.getKey()) &amp;&amp;</span><br><span class="line">                Objects.equals(value, e.getValue()))</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>Node是HashMap的一个内部类，实现了Map.Entry接口，也就是HashMap中用于存储键值对的基础<br>单元了。</p>
+<p>说了这么多，有些人是不是感觉有点跑偏了，其实不然，map的几个重要方法也就是对这些数据结构的操作，当然还有其他的一些负载因子参数啥的，有兴趣的可深入了解。接下来就是我的推断时间了：还记得上面的cotains方法最后到HashMap中的getNode方法么，淡忘了的可以返回去看一下，还有我们的demo代码：<code>getNode</code>方法的遍历顺序，是这样的，首先通过首先通过传入的int hash值去寻找tab中对应的索引，然后遍历对比，顺序是，先比较hashCode，然后再去对比equals。可是我们复写了hashcode 啊。所以我通过几张图来讲解一下我的猜想：<br><img src="caixiang.jpeg" alt="猜想"><br>图画的一般哈哈<br>为方便我们讲解我们假设存储的结构是如图所示的，其实真是情况下是不会这么规则排列的，而且还会存在哈希值冲撞等等的情况。我们知道<code>HashSet</code>底层是通过利用hashmap key唯一性的特点将object作为key，然后传入一个默认值的value实现的。我们假设第一次初始化存储之后以1/2/3/4作为key的Node分别存储在索引为1/2/3/4的位置上，修改第一项为4以及删除操作之后数据结构变化如图所示。所以当我们去查询的时候<br><figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">System.<span class="keyword">out</span>.println(<span class="string">"是否包含count为4的对象"</span> + hs.contains(<span class="keyword">new</span> TestBean(<span class="number">4</span>)));</span><br><span class="line">分析步骤如下</span><br><span class="line"><span class="number">1.</span>通过对哈希值的计算得到索引然后找到tab[<span class="number">4</span>]的位置上</span><br><span class="line"><span class="number">2.</span>发现链表为<span class="literal">null</span>所以直接返回<span class="literal">false</span></span><br><span class="line"></span><br><span class="line">System.<span class="keyword">out</span>.println(<span class="string">"是否包含count为1的对象"</span> + hs.contains(<span class="keyword">new</span> TestBean(<span class="number">1</span>)));</span><br><span class="line">分析步骤如下</span><br><span class="line"><span class="number">1.</span>通过对哈希值的计算得到索引然后找到tab[<span class="number">1</span>]的位置上</span><br><span class="line"><span class="number">2.</span>发现链表为不为<span class="literal">null</span>，开始遍历。</span><br><span class="line"><span class="number">3.</span>开始比较hashCode相同，调用<span class="keyword">equals</span>，然后返回<span class="literal">false</span></span><br></pre></td></tr></table></figure></p>
+<p>以上就是我的猜想了，但是有了猜想，咱就得想办法去佐证一下，不然就真的是瞎想了，我是这样去认证的：修改TestA的<code>hashCode()</code>和<code>equals()</code>方法，添加打印消息：<br><figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">boolean</span> equals(Object obj)</span><br><span class="line">  &#123;</span><br><span class="line">      <span class="keyword">if</span> (obj <span class="keyword">instanceof</span> TestBean)</span><br><span class="line">      &#123;</span><br><span class="line">          TestBean r = (TestBean)obj;</span><br><span class="line">          System.out.<span class="keyword">println</span>(<span class="string">"equals"</span>); <span class="comment">//添加打印信息</span></span><br><span class="line">          <span class="keyword">if</span> (r.<span class="keyword">count</span> == <span class="keyword">this</span>.<span class="keyword">count</span>)</span><br><span class="line">          &#123;</span><br><span class="line">              <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">int</span> hashCode()</span><br><span class="line">  &#123;</span><br><span class="line">      System.out.<span class="keyword">println</span>(<span class="string">"hashcode"</span>);  <span class="comment">//添加打印信息</span></span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">this</span>.<span class="keyword">count</span>;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></p>
+<p>修改demo如下：</p>
+<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">System.<span class="keyword">out</span>.println(<span class="string">"begin-------&gt; 4"</span>);</span><br><span class="line">      System.<span class="keyword">out</span>.println(<span class="string">"是否包含count为4的对象"</span> + hs.contains(<span class="keyword">new</span> TestBean(<span class="number">4</span>)));</span><br><span class="line">      System.<span class="keyword">out</span>.println(<span class="string">"end-------&gt; 4"</span>);</span><br><span class="line">      System.<span class="keyword">out</span>.println(<span class="string">"begin-------&gt; 1"</span>);</span><br><span class="line">      System.<span class="keyword">out</span>.println(<span class="string">"是否包含count为1的对象"</span> + hs.contains(<span class="keyword">new</span> TestBean(<span class="number">1</span>)));</span><br><span class="line">      System.<span class="keyword">out</span>.println(<span class="string">"end-------&gt; 1"</span>);</span><br></pre></td></tr></table></figure>
+<p>打印结果如下：<br><img src="log2.png" alt="log2"><br>至此，与猜想完全吻合～<br>以上内容皆属于个人猜想，如有错误，欢迎拍砖。</p>
+<h3><span id="参考文章">参考文章：</span></h3><p><a href="https://tech.meituan.com/java-hashmap.html" target="_blank" rel="noopener">Java 8系列之重新认识HashMap</a><br><a href="https://yikun.github.io/2015/04/01/Java-HashMap%25E5%25B7%25A5%25E4%25BD%259C%25E5%258E%259F%25E7%2590%2586%25E5%258F%258A%25E5%25AE%259E%25E7%258E%25B0/" target="_blank" rel="noopener">Java HashMap工作原理及实现</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/2018/01/08/编译Android8-0源码/" data-toggle="tooltip" data-placement="top" title="编译Android8.0源码">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/2017/12/16/实现listView单选及复用的坑/" data-toggle="tooltip" data-placement="top" title="实现listView单选及复用带来的坑">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- disqus comment start -->
+                
+                    <div class="comment">
+                        <div id="disqus_thread" class="disqus-thread"></div>
+                    </div>
+                
+                <!-- disqus comment end -->
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+    
+      <aside id="sidebar">
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Java" title="Java">Java</a>
+                        
+                          <a class="tag" href="/tags/#源码" title="源码">源码</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://beantech.org" target="_blank">Bean Tech</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- disqus embedded js code start (one page only need to embed once) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "jayzhaoboy";
+    var disqus_identifier = "http://jayzhaoboy.cn/2017/12/21/Hashset猜想/";
+    var disqus_url = "http://jayzhaoboy.cn/2017/12/21/Hashset猜想/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus embedded js code start end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/JayZhaoBoy">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; JayZhao 2018
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://jayzhaoboy.cn/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'jayzhaoboy.cn';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

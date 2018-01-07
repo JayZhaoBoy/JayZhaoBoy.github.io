@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Android, Blog, JayZ">
+    <meta name="keyword"  content="">
+    <link rel="shortcut icon" href="/img/j_icon.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          编译Android8.0源码 - JayZhao的博客 | JayZ Blog
+        
+    </title>
+
+    <link rel="canonical" href="http://jayzhaoboy.cn/2018/01/08/编译Android8-0源码/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/code-bg2.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#源码" title="源码">源码</a>
+                            
+                              <a class="tag" href="/tags/#Android" title="Android">Android</a>
+                            
+                        </div>
+                        <h1>编译Android8.0源码</h1>
+                        <h2 class="subheading">Android 8.0源码</h2>
+                        <span class="meta">
+                            Posted by JayZhao on
+                            2018-01-08
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">JayZ Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h3><span id="背景">背景</span></h3><p>以前在公司电脑上用虚拟机编译过6.0的Android，今年年中新入手Mac之后原本想在自己电脑上重新编译一下的，因为懒而且要分出本来就一大部分内存空间来就一直拖着，但后来公司电脑实在是卡，所以终于决定重新编译一次8.0：网上有很多教程也有好几种方式。<br>首先我的环境是：</p>
+<ul>
+<li>mac  10.13.2</li>
+<li>xCode 9.2</li>
+<li>jdk1.8</li>
+<li>加科学上网</li>
+</ul>
+<p>主要的步骤和大部分的问题都可以通过以下文章解决：<br><a href="https://www.jianshu.com/p/759a6677c946" target="_blank" rel="noopener">Mac 下载 编译 debug Android 源码</a><br><a href="https://www.jianshu.com/p/35f840dd7869" target="_blank" rel="noopener">mac 10.13 编译 Android源码</a></p>
+<hr>
+<h3><span id="以下是我另外遇到的问题及解决方案">以下是我另外遇到的问题及解决方案：</span></h3><h3><span id="请注意">请注意！！！</span></h3><h3><span id="请注意">请注意！！！</span></h3><h3><span id="请注意">请注意！！！</span></h3><p><code>如果你编译的是全量的8.0源码，不要想着把磁盘分区设为60-70G了，100G都不够，150G勉强够吧。第一次就是在最后编译的过程中，到60%磁盘满了！满了！满了！折腾了这么久功亏一篑，然后重新来过～这是血的教训</code></p>
+<h4><span id="解决办法">解决办法</span></h4><ul>
+<li>方法一.把分区设的越大越好</li>
+<li>方法二.修改default.xml，为其中每个project添加一个clone-depth=”1”的属性，请参考文章开头的第一篇文章，只不过文章中提供的python脚本在project存在子标签的情况下无法正常工作所以本人稍作修改并自动输入成xml格式文件，其他操作都是一样的：</li>
+</ul>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">#!/usr/bin/env <span class="keyword">python</span></span><br><span class="line"># -*- codin<span class="variable">g:</span> utf-<span class="number">8</span> -*-</span><br><span class="line">out = <span class="keyword">open</span>(<span class="string">'2.xml'</span>, <span class="string">'wb'</span>)</span><br><span class="line">file_object = <span class="keyword">open</span>(<span class="string">'default.xml'</span>)</span><br><span class="line"></span><br><span class="line">change_content = <span class="string">''</span></span><br><span class="line"><span class="keyword">while</span> <span class="number">1</span>:</span><br><span class="line">    <span class="built_in">line</span> = file_object.readline()</span><br><span class="line">    <span class="keyword">if</span> not <span class="built_in">line</span>.__contains__(<span class="string">'clone-depth'</span>):</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            <span class="keyword">if</span> <span class="built_in">line</span>.__contains__(<span class="string">'&lt;project'</span>) <span class="built_in">and</span> <span class="built_in">line</span>.__contains__(<span class="string">'&gt;'</span>):</span><br><span class="line">                <span class="keyword">if</span> <span class="built_in">line</span>.__contains__(<span class="string">'/&gt;'</span>):</span><br><span class="line">                    endpos = <span class="built_in">line</span>.<span class="built_in">index</span>(<span class="string">"/&gt;"</span>)</span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    endpos = <span class="built_in">line</span>.<span class="built_in">index</span>(<span class="string">"&gt;"</span>)</span><br><span class="line">                <span class="built_in">line</span> = <span class="built_in">line</span>[<span class="number">0</span>:endpos] + <span class="string">' clone-depth="1"'</span> + <span class="built_in">line</span>[endpo<span class="variable">s:</span> <span class="built_in">line</span>.__len__()]</span><br><span class="line">            pass</span><br><span class="line">        except Exception, <span class="keyword">e</span>:</span><br><span class="line">            pass</span><br><span class="line"></span><br><span class="line">    change_content += <span class="built_in">line</span></span><br><span class="line">    <span class="keyword">if</span> not <span class="built_in">line</span>:</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">    pass  # <span class="keyword">do</span> something</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span> change_content</span><br><span class="line">out.<span class="keyword">write</span>(change_content)</span><br></pre></td></tr></table></figure>
+<h3><span id="注后来补充此方法对于编译80需要稍作修改">注：（后来补充此方法对于编译8.0需要稍作修改）</span></h3><p>方法二适用于不需要切换分支和历史提交（commit）的同学，因为设置了clone-depth=”1”属性，就只会下载最新一层的代码，因此会大大减少需要下载的代码量，原本这个对于我们大多数人来说并没有影响。但是由于8.0在mac 10.13版本编译阶段应该说是必然会出现的一个关于bison的报错：</p>
+<figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">FAILED:</span></span><br><span class="line">out<span class="meta-keyword">/soong/</span>.intermediates<span class="meta-keyword">/system/</span>tools<span class="meta-keyword">/aidl/</span>libaidl-common/darwin_x8664static<span class="meta-keyword">/gen/</span>yacc<span class="meta-keyword">/system/</span>tools<span class="meta-keyword">/aidl/</span>aidl_language_y.cpp</span><br><span class="line">out<span class="meta-keyword">/soong/</span>.intermediates<span class="meta-keyword">/system/</span>tools<span class="meta-keyword">/aidl/</span>libaidl-common/darwin_x8664static<span class="meta-keyword">/gen/</span>yacc<span class="meta-keyword">/system/</span>tools<span class="meta-keyword">/aidl/</span>aidl_language_y.h</span><br><span class="line"></span><br><span class="line">BISON_PKGDATADIR=external<span class="meta-keyword">/bison/</span>data</span><br><span class="line">prebuilts<span class="meta-keyword">/misc/</span>darwin-x86<span class="meta-keyword">/bison/</span>bison -d</span><br><span class="line">--defines=out<span class="meta-keyword">/soong/</span>.intermediates<span class="meta-keyword">/system/</span>tools<span class="meta-keyword">/aidl/</span>libaidl-common/darwin_x8664static<span class="meta-keyword">/gen/</span>yacc<span class="meta-keyword">/system/</span>tools<span class="meta-keyword">/aidl/</span>aidl_language_y.h</span><br><span class="line">-o out<span class="meta-keyword">/soong/</span>.intermediates<span class="meta-keyword">/system/</span>tools<span class="meta-keyword">/aidl/</span>libaidl-common/darwin_x8664static<span class="meta-keyword">/gen/</span>yacc<span class="meta-keyword">/system/</span>tools<span class="meta-keyword">/aidl/</span>aidl_language_y.cpp</span><br><span class="line">system<span class="meta-keyword">/tools/</span>aidl/aidl_language_y.yy</span><br></pre></td></tr></table></figure>
+<p>log可能有所不同，你只需要看是否有bison字眼就可以了，下面这是我觉得比较有道理的一个分析：</p>
+<blockquote>
+<p>This was still the case for Jan 4 master checkout. make clean and make did fail.Applying the bison fix described below fixed it. (mm bison and copy it)</p>
+</blockquote>
+<p>大概意思是/Volumes/AOSP/prebuilts/misc/darwin-x86/bison/目录下缺少bison文件，然而这个bison文件在另一个文件夹的之前版本中。我们采用方法二中下载的源码没有办法切换？卧槽！！！！当时第一反应懵逼了，难道还要从新开始，可是分区大小不够，难道要删除分区重新创建从repo init开始～？不甘心，所以就开始找办法解决：</p>
+<ul>
+<li>实践1:不就是缺少了一个bison文件么，我去找一个不就得了，然后各种下载和用本地bison替换，最后全部以相同报错结束～</li>
+<li>实践2:就在我要放弃并重新开始的时候，我灵机一动，真的就是当时一瞬间的联想：还记得我们修改的default.xml文件么？既然repo是根据这个文件去sync源码树的，那我把我需要的那个project不设置clone-depth=”1”属性不就好了么？然后在default.xml文件中全局搜索了<code>external/bison</code>一下，卧槽竟然真的搜到了，然后果断去掉这个project的clone-depth=”1”属性，然后重新执行 </li>
+</ul>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">repo <span class="keyword">sync</span></span><br></pre></td></tr></table></figure>
+<p>然后在按照文章开头的第二篇文章中的方法也就是以下步骤即可解决：<br><figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Patch [bison fix](<span class="string">https:</span><span class="comment">//android-review.googlesource.com/c/platform/external/bison/+/517740) for High Sierra and build bison:</span></span><br><span class="line"></span><br><span class="line">    <span class="number">1.</span> cd <span class="regexp">/Volumes/</span>AOSP<span class="regexp">/external/</span>bison</span><br><span class="line">    <span class="number">2.</span> git cherry-pick c0c852bd6fe462b148475476d9124fd740eba160</span><br><span class="line">    <span class="number">3.</span> mm</span><br><span class="line"></span><br><span class="line">Replace prebuilt bison binary with patched binary <span class="comment">//替换bison文件</span></span><br><span class="line"></span><br><span class="line">    <span class="number">1.</span> cp <span class="regexp">/Volumes/</span>AOSP<span class="regexp">/out/</span>host<span class="regexp">/darwin-x86/</span>bin<span class="regexp">/bison /</span>Volumes<span class="regexp">/AOSP/</span>prebuilts<span class="regexp">/misc/</span>darwin-x86<span class="regexp">/bison/</span>   <span class="comment">// /Volumes/AOSP/替换成你的源码目录</span></span><br><span class="line"></span><br><span class="line">Build <span class="comment">//重新编译</span></span><br><span class="line"></span><br><span class="line">    <span class="number">1.</span> make  -j8 <span class="comment">//根据自己的电脑配置 核数*2</span></span><br></pre></td></tr></table></figure></p>
+<p>如果mm命令无法执行，需要回去执行以下命令</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">1. </span>source build/envsetup.sh</span><br><span class="line"><span class="bullet">2. </span>lunch 之后回到external/bison目录</span><br><span class="line"><span class="bullet">3. </span>mm</span><br></pre></td></tr></table></figure>
+<h4><span id="下载源码阶段">下载源码阶段</span></h4><p>1.安装repo </p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl https:<span class="regexp">//</span>storage.googleapis.com<span class="regexp">/git-repo-downloads/</span>repo &gt; ~<span class="regexp">/bin/</span>repo</span><br></pre></td></tr></table></figure>
+<p>官方推荐的安装方式，但假如你和我一样无法安装成功或者报以下错误：</p>
+<p><img src="repoError.png" alt="repoError"><br>网上搜了以下也没法解决这个ssl连接出错的问题，遇到这种问题直接复制链接浏览器打开下载到电脑上<br><a href="https://storage.googleapis.com/git-repo-downloads/repo" target="_blank" rel="noopener">https://storage.googleapis.com/git-repo-downloads/repo</a><br>然后进入到你保存repo文件的目录下执行以下命令</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp -<span class="selector-tag">i</span> repo ~/bin</span><br></pre></td></tr></table></figure>
+<p>同时不要忘了给repo执行权限</p>
+<p>2.repo: command not found<br>解决方法：执行</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">echo</span> <span class="string">'export PATH=<span class="variable">$PATH</span>:<span class="variable">$HOME</span>/bin'</span> &gt;&gt; ~/.bashrc  </span><br><span class="line">export PATH=<span class="variable">$PATH</span>:<span class="variable">$HOME</span>/bin</span><br></pre></td></tr></table></figure>
+<p>3.下载源码，即使已经科学上网了最后还是没能使用google的官方资源，最后使用了清华镜像，具体可参考官方说明：<a href="https://mirrors.tuna.tsinghua.edu.cn/help/AOSP/" target="_blank" rel="noopener">清华镜像</a></p>
+<h4><span id="编译阶段">编译阶段</span></h4><p>先介绍以下背景  本文使用的是<code>macports</code>，也说不上来macports和homebrew哪个好哈哈。<br>1.安装<code>gnupg</code>失败：<br>我在参考文章开始阶段的文章下载安装需要的依赖时候在安装<code>gnupg</code>失败了，报错如下：</p>
+<p><img src="error.png" alt="error"><br>提示信息很明确都不要搜索，但总有些心急的同学见到英文第一反应就是复制搜索，所以我还是说下解决方案，报错信息提示gnupg被弃用了，建议安装gnupg2。所以只需打开终端输入如下命令：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">POSIXLY_CORRECT</span>=1 sudo<span class="built_in"> port </span>install gnupg2</span><br></pre></td></tr></table></figure>
+<p>2.缺少mac sdk包，根据提示找到相应版本，下载到本地<a href="https://github.com/phracker/MacOSX-SDKs/releases" target="_blank" rel="noopener">https://github.com/phracker/MacOSX-SDKs/releases</a>解压然后复制到以下目录<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="regexp">/Applications/</span>Xcode.app<span class="regexp">/Contents/</span>Developer<span class="regexp">/Platforms/</span>MacOSX.platform<span class="regexp">/Developer/</span>SDKs</span><br></pre></td></tr></table></figure></p>
+<p>如果直接打开无法解压可通过tar命令解压：</p>
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">tar -Jxvf fileName</span></span><br></pre></td></tr></table></figure>
+<p>3.好几次报错都有 xz: command not found:<br>xz就是一个解压工具包，缺啥咱就装啥，下载压缩包，然后解压加上安装三板斧：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ./configure</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> make</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> make install</span></span><br></pre></td></tr></table></figure></p>
+<p><a href="https://www.jianshu.com/p/6efadc7f86cf" target="_blank" rel="noopener">安装xz</a><br>其他的就是耐心等待了～</p>
+<h3><span id="拓展">拓展</span></h3><p>今天有人给我说用ln命令去创建一个软链啊，what？软链？那岂不是还有硬链？有啥区别呢？然后发现很好的一片文章，看得似懂非懂，先记录下来再说，在此之前先奉上文章链接<br><a href="https://www.ibm.com/developerworks/cn/linux/l-cn-hardandsymb-links/index.html" target="_blank" rel="noopener">理解 Linux 的硬链接与软链接</a><br>然后发现一个比较有意思的点：<br>文件名与文件索引的真实要素inode与域名和ip之间的关系非常类似。</p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/2017/12/21/Hashset猜想/" data-toggle="tooltip" data-placement="top" title="HashSet猜想及JDK 8.0HashMap源码研究">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- disqus comment start -->
+                
+                    <div class="comment">
+                        <div id="disqus_thread" class="disqus-thread"></div>
+                    </div>
+                
+                <!-- disqus comment end -->
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+    
+      <aside id="sidebar">
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#源码" title="源码">源码</a>
+                        
+                          <a class="tag" href="/tags/#Android" title="Android">Android</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://beantech.org" target="_blank">Bean Tech</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- disqus embedded js code start (one page only need to embed once) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "jayzhaoboy";
+    var disqus_identifier = "http://jayzhaoboy.cn/2018/01/08/编译Android8-0源码/";
+    var disqus_url = "http://jayzhaoboy.cn/2018/01/08/编译Android8-0源码/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus embedded js code start end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/JayZhaoBoy">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; JayZhao 2018
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://jayzhaoboy.cn/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'jayzhaoboy.cn';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
