@@ -14,11 +14,11 @@
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <title>
         
-          我的博客记录之旅 - JayZhao的博客 | JayZ Blog
+          Git回滚之Revert - JayZhao的博客 | JayZ Blog
         
     </title>
 
-    <link rel="canonical" href="http://jayzhaoboy.cn/2017/12/12/我的博客记录之旅/">
+    <link rel="canonical" href="http://jayzhaoboy.cn/2018/01/08/Git回滚之Revert/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -86,14 +86,14 @@
                     <div class="post-heading">
                         <div class="tags">
                             
-                              <a class="tag" href="/tags/#随笔" title="随笔">随笔</a>
+                              <a class="tag" href="/tags/#Git" title="Git">Git</a>
                             
                         </div>
-                        <h1>我的博客记录之旅</h1>
-                        <h2 class="subheading"></h2>
+                        <h1>Git回滚之Revert</h1>
+                        <h2 class="subheading">Revert</h2>
                         <span class="meta">
                             Posted by JayZhao on
-                            2017-12-12
+                            2018-01-08
                         </span>
                     </div>
                 
@@ -210,10 +210,38 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <p>从自学编程到现在两年多了，看了很多博客。增长了很多见识，从其中获取到了大量的知识。其中有郭霖，鸿祥这样的大神的原创精品，也有你‘借鉴’我，我‘借鉴’你，包括错误也一样‘借鉴’过来的渣文。每当此时，也有一股要做一个精品不断的博客大牛…………</p>
-<p>哈哈，梦就先做到这，路还是要一步一步走的。以前每当有写博客的时候，一方面可能肚子了也没几两墨水（其实现在也没多少哈哈）；另一方面呢就会给自己找一些工作太忙没时间等掩饰自己太懒的借口。所以啊，既然都知道是借口了，咱也不能一直这么放任自己下去啊。并且在日常工作中发现以前弄明白的很多东西很久不用就淡忘了，所以把东西记录下来就变得愈加重要了。</p>
-<p>说干咱就直接撸起袖子，可是咱毕竟设计师出身，比较追求美观，而且又不想在博客网站上写，所以就买了个域名，利用hexo和github搭建了一个博客，感兴趣的同学可以网上搜一下教程，我就不在这里‘借鉴了’。</p>
-<p>说了这么多，我的博客之旅就从这里开始了，愿时光变迁，我初心不变～</p>
+                <p>用了这么久的Git，日常使用的就是add,commit,reset,checkout,pull,push等，代码回滚主要有三个重要的命令<code>reset</code>  <code>checkout</code>  <code>revert</code><br>但<code>revert</code>使用的场景非常之少，所以总容易遗忘，而且每次去搜别人的解释总要花时间理解一下，所以在此记录一下自己的实践过程，方便以后忘记查阅。在这里只着重理解<code>revert</code>和<code>checkout</code>在提交层面的特点。<br>若对git其他命令不甚详解可先阅读：<br><a href="https://github.com/geeeeeeeeek/git-recipes/wiki/5.2-%25E4%25BB%25A3%25E7%25A0%2581%25E5%259B%259E%25E6%25BB%259A%25EF%25BC%259AReset%25E3%2580%2581Checkout%25E3%2580%2581Revert-%25E7%259A%2584%25E9%2580%2589%25E6%258B%25A9" target="_blank" rel="noopener">代码回滚：Reset、Checkout、Revert-的选择</a><br><a href="https://git-scm.com/doc" target="_blank" rel="noopener">Git官方文档</a></p>
+<p>先来个简单的例子</p>
+<p><img src="file.png" alt="1.txt"><br>就是一个txt文件的三次提交内容</p>
+<p><img src="log.png" alt="log"><br>这是 git log，十分简单。</p>
+<h2><span id="checkout简单也没啥好说的">checkout（简单，也没啥好说的）</span></h2><p>提交层面主要就两个功能</p>
+<ul>
+<li>1.切换分支，还可以与-b（新建）-merge（合并）</li>
+</ul>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">checkout <span class="tag">&lt;<span class="name">-b，-merge等</span>&gt;</span> <span class="tag">&lt;<span class="name">branchName</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>2.查看就版本代码</li>
+</ul>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git checkout <span class="tag">&lt;<span class="name">HEAD</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>这样你就可以切换到指定分支的代码了，所以还是要记住在此之前提交已修改的代码。其实这个操作要我说切换版本和切换分支的原理是一样的，不信你看:</p>
+<p><img src="checkout.png" alt="checkout"><br>其实git已经把啥都告诉你了框选的意思大概就是说</p>
+<blockquote>
+<p>你处于“脱离<code>HEAD</code>”状态。你可在这里写修改测试并提交，你也可以放弃你的提交通过执行另一个分支而不影响其他分支。如果你想创建一个新的分支来保留你创建的提交，你可以再次使用-b和checkout命令。</p>
+</blockquote>
+<p>并且终端里面用于展示当前分支名字的位置都变成了HEAD的值，所以我说和切换分支很类似，但类似毕竟是类似，还是不一样的，上面说了你可以在check后的HEAD状态下，修改测试甚至提交。但记住你<code>处于“脱离HEAD”状态</code>，啥意思呢，通俗理解就是你处在一个独立的状态，当你切回其他分支的时候你所做的全部修改都会不见了。所以若想保存提交可通过建立新分支～</p>
+<h2><span id="revert">revert</span></h2><p>这个命令前面一直理解的模糊，当然我估计很多人用了这么久git也没遇到需要使用revert的场景。</p>
+<blockquote>
+<p>Revert 撤销一个提交的同时会创建一个新的提交。<br>可结合前面链接中的配图理解。<br>当时总把revert和checkout混淆了，认为就在当前分支进行的类似checkout操作，在实践之后发现事实情况是这个样子的：<br>通常情况下（没有冲突），假如当前我们在master分支，当我们运行以下代码的时候：</p>
+</blockquote>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">git</span> <span class="keyword">revert </span>&lt;HEAD&gt;</span><br></pre></td></tr></table></figure>
+<p>比如我们运行revert回到第二次提交也就是：</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">git</span> <span class="keyword">revert </span><span class="number">129304</span></span><br></pre></td></tr></table></figure>
+<p>效果应该是第二次提交被<code>撤销</code>并不是回到第二次提交，其实是相当于回到第一次提交的状态~~<br>1.txt内容会变成:</p>
+<p><img src="txt.png" alt="txt"><br>这是当时我比较容易记混的点，不仅如此假如此时我们的git log的话应该会有四条内容。</p>
+<p>不过通常情况下会出现冲突或者报错又或者我们不想直接提交这些都可以通过一种方法来解决，假如你想revert的版本不是很考前的话哈哈：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">git</span> revert --<span class="literal">no</span>-commit HEAD </span><br><span class="line">git revert --<span class="literal">no</span>-commit HEAD~<span class="number">1</span></span><br><span class="line">git revert --<span class="literal">no</span>-commit HEAD~<span class="number">2</span> </span><br><span class="line">…………</span><br></pre></td></tr></table></figure>
+<p><code>--no-commit</code>就是不立即提交的意思，而且这种‘笨’方法能解决一种很奇怪的报错，但这次的例子中没有遇到。最后可以通过<br><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git revert --<span class="keyword">continue</span></span><br></pre></td></tr></table></figure></p>
+<p>或者添加了其他修改然后通过add commit 完成一次新的提交，提交的HEAD位于当前分支的最末尾位置。<br>以上就是revert的特点了。</p>
 
                 
 
@@ -221,10 +249,10 @@
                 <!-- Pager -->
                 <ul class="pager">
                     
-                        <li class="previous">
-                            <a href="/2017/12/16/实现listView单选及复用的坑/" data-toggle="tooltip" data-placement="top" title="实现listView单选及复用带来的坑">&larr; Previous Post</a>
-                        </li>
                     
+                        <li class="next">
+                            <a href="/2018/01/08/编译Android8-0源码/" data-toggle="tooltip" data-placement="top" title="编译Android8.0源码">Next Post &rarr;</a>
+                        </li>
                     
                 </ul>
 
@@ -259,7 +287,7 @@
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#随笔" title="随笔">随笔</a>
+                          <a class="tag" href="/tags/#Git" title="Git">Git</a>
                         
                     </div>
                 </section>
@@ -286,8 +314,8 @@
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES * * */
     var disqus_shortname = "jayzhaoboy";
-    var disqus_identifier = "http://jayzhaoboy.cn/2017/12/12/我的博客记录之旅/";
-    var disqus_url = "http://jayzhaoboy.cn/2017/12/12/我的博客记录之旅/";
+    var disqus_identifier = "http://jayzhaoboy.cn/2018/01/08/Git回滚之Revert/";
+    var disqus_url = "http://jayzhaoboy.cn/2018/01/08/Git回滚之Revert/";
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
