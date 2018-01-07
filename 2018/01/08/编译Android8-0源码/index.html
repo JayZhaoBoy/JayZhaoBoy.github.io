@@ -142,14 +142,14 @@
 
                         
                         <li>
-                            <a href="/archive/">Archives</a>
+                            <a href="/about/">About</a>
                         </li>
                         
                     
 
                         
                         <li>
-                            <a href="/about/">About</a>
+                            <a href="/archive/">Archives</a>
                         </li>
                         
                     
@@ -245,9 +245,9 @@
 <h4><span id="下载源码阶段">下载源码阶段</span></h4><p>1.安装repo </p>
 <figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl https:<span class="regexp">//</span>storage.googleapis.com<span class="regexp">/git-repo-downloads/</span>repo &gt; ~<span class="regexp">/bin/</span>repo</span><br></pre></td></tr></table></figure>
 <p>官方推荐的安装方式，但假如你和我一样无法安装成功或者报以下错误：</p>
-<p><img src="repoError.png" alt="repoError"><br>网上搜了以下也没法解决这个ssl连接出错的问题，遇到这种问题直接复制链接浏览器打开下载到电脑上<br><a href="https://storage.googleapis.com/git-repo-downloads/repo" target="_blank" rel="noopener">https://storage.googleapis.com/git-repo-downloads/repo</a><br>然后进入到你保存repo文件的目录下执行以下命令</p>
+<p><img src="repoError.png" alt="repoError"><br>假如你和我一样科学上网的话遇到这种问题直接复制链接浏览器打开下载到电脑上<br><a href="https://storage.googleapis.com/git-repo-downloads/repo" target="_blank" rel="noopener">https://storage.googleapis.com/git-repo-downloads/repo</a><br>然后进入到你保存repo文件的目录下执行以下命令</p>
 <figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp -<span class="selector-tag">i</span> repo ~/bin</span><br></pre></td></tr></table></figure>
-<p>同时不要忘了给repo执行权限</p>
+<p>不然就使用<a href="https://mirrors.tuna.tsinghua.edu.cn/help/AOSP/" target="_blank" rel="noopener">清华镜像</a><br>同时不要忘了给repo执行权限</p>
 <p>2.repo: command not found<br>解决方法：执行</p>
 <figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">echo</span> <span class="string">'export PATH=<span class="variable">$PATH</span>:<span class="variable">$HOME</span>/bin'</span> &gt;&gt; ~/.bashrc  </span><br><span class="line">export PATH=<span class="variable">$PATH</span>:<span class="variable">$HOME</span>/bin</span><br></pre></td></tr></table></figure>
 <p>3.下载源码，即使已经科学上网了最后还是没能使用google的官方资源，最后使用了清华镜像，具体可参考官方说明：<a href="https://mirrors.tuna.tsinghua.edu.cn/help/AOSP/" target="_blank" rel="noopener">清华镜像</a></p>
