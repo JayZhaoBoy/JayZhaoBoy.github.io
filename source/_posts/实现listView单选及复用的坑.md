@@ -5,7 +5,6 @@ date: 2017-12-16 13:58:46
 subtitle:
 header-img: "/img/header_img/code-bg2.jpg"
 tags:
-- listView
 - Android
 ---
 
