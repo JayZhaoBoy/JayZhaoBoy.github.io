@@ -2,13 +2,6 @@
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
     <url>
-        <loc>http://jayzhaoboy.cn/tags/%E9%9A%8F%E7%AC%94/</loc>
-        <lastmod>2018-01-07T19:05:56.294Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
         <loc>http://jayzhaoboy.cn/tags/Java/</loc>
         <lastmod>2018-01-07T19:38:14.783Z</lastmod>
         <changefreq>weekly</changefreq>
@@ -32,6 +25,13 @@
     <url>
         <loc>http://jayzhaoboy.cn/tags/Android/</loc>
         <lastmod>2018-01-07T19:50:13.888Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>http://jayzhaoboy.cn/tags/%E9%9A%8F%E7%AC%94/</loc>
+        <lastmod>2018-01-28T08:19:24.016Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
