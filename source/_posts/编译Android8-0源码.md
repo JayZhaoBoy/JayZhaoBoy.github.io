@@ -123,13 +123,14 @@ curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
 官方推荐的安装方式，但假如你和我一样无法安装成功或者报以下错误：
 
 ![repoError](repoError.png)
-网上搜了以下也没法解决这个ssl连接出错的问题，遇到这种问题直接复制链接浏览器打开下载到电脑上
+假如你和我一样科学上网的话遇到这种问题直接复制链接浏览器打开下载到电脑上
 [https://storage.googleapis.com/git-repo-downloads/repo](https://storage.googleapis.com/git-repo-downloads/repo)
 然后进入到你保存repo文件的目录下执行以下命令
 
 ```
 cp -i repo ~/bin
 ```
+不然就使用[清华镜像](https://mirrors.tuna.tsinghua.edu.cn/help/AOSP/)
 同时不要忘了给repo执行权限
 
 2.repo: command not found

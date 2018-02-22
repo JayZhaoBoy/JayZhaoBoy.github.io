@@ -2,7 +2,7 @@
 title: Git回滚之Revert
 catalog: true
 date: 2018-01-08 03:29:47
-subtitle:Revert
+subtitle: Revert
 header-img: "/img/header_img/code-bg2.jpg"
 tags:
 - Git
