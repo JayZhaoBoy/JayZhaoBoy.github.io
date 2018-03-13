@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Android, Blog, JayZ">
+    <meta name="keyword"  content="">
+    <link rel="shortcut icon" href="/img/j_icon.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          【译】在 Android Instant App（安卓即时应用程序）中启用 ProGuard （混淆） - JayZhao的博客 | JayZ Blog
+        
+    </title>
+
+    <link rel="canonical" href="http://jayzhaoboy.cn/2018/03/13/翻译Android混淆/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/juejin.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Android" title="Android">Android</a>
+                            
+                              <a class="tag" href="/tags/#掘金翻译计划" title="掘金翻译计划">掘金翻译计划</a>
+                            
+                        </div>
+                        <h1>【译】在 Android Instant App（安卓即时应用程序）中启用 ProGuard （混淆）</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by JayZhao on
+                            2018-03-13
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">JayZ Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <blockquote>
+<ul>
+<li>原文地址：<a href="https://medium.com/google-developers/enabling-proguard-in-an-android-instant-app-fbd4fc014518" target="_blank" rel="noopener">Enabling ProGuard in an Android Instant App</a></li>
+<li>原文作者：<a href="https://medium.com/@wkalicinski?source=post_header_lockup" target="_blank" rel="noopener">Wojtek Kaliciński</a></li>
+<li>译文出自：<a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a></li>
+<li>本文永久链接：<a href="https://github.com/xitu/gold-miner/blob/master/TODO/enabling-proguard-in-an-android-instant-app.md" target="_blank" rel="noopener">https://github.com/xitu/gold-miner/blob/master/TODO/enabling-proguard-in-an-android-instant-app.md</a></li>
+<li>译者：<a href="https://github.com/JayZhaoBoy" target="_blank" rel="noopener">JayZhaoBoy</a></li>
+<li>校对者：<a href="https://github.com/hanliuxin5" target="_blank" rel="noopener">hanliuxin5</a></li>
+</ul>
+</blockquote>
+<h1><span id="在-android-instant-app安卓即时应用程序中启用-proguard-混淆">在 Android Instant App（安卓即时应用程序）中启用 ProGuard （混淆）</span></h1><p><strong><em>更新于 2018–01–18:</em></strong> <em>指南第五步中的重要更新，是对非基础模块的必要补充</em></p>
+<h3><span id="instant-apps即时应用和-4-mb-字节的限制">Instant Apps（即时应用）和 4 MB 字节的限制</span></h3><p>把一个已经存在的应用程序转换成 <a href="https://developer.android.com/topic/instant-apps/index.html" target="_blank" rel="noopener">Android Instant App（安卓即时应用程序）</a>是很有挑战性的，但对于<a href="https://developer.android.com/topic/instant-apps/getting-started/structure.html" target="_blank" rel="noopener">模块及结构化你的项目</a>而言却是一个很好的练习，更新 SDKs（开发工具包）并遵守所有的 <a href="https://developer.android.com/topic/instant-apps/getting-started/prepare.html" target="_blank" rel="noopener">Instant Apps（即时应用程序）沙箱限制</a>以确保即时应用程序的安全和更快的加载速度。</p>
+<p>其中一项限制规定，对于即时应用处理的每个 URL，传送到客户端设备上的功能模块和基本模块的总大小不得超过 4 MB 字节。</p>
+<p>想一下你的项目中可能存在的典型的 <em>common（公共）</em> 模块（在 Instant Apps（即时应用程序）术语中，我们将称这个模块为 <em>base feature（基础功能）</em> 模块）：它可能依赖于支持库的许多部分，包含 SDK，图像加载库，公共网络代码等等。这些大量的代码通常只是为了启动，因此不能为实际功能模块代码和资源留出足够的空间来解决 4 MB 字节的限制。</p>
+<p>这里有许多<a href="https://developer.android.com/topic/performance/reduce-apk-size.html" target="_blank" rel="noopener">通用</a>和 <a href="https://android-developers.googleblog.com/2017/08/android-instant-apps-best-practices-for.html" target="_blank" rel="noopener">安卓即时程序专用（AIA 意为 Android Instant Apps）</a>的技术可以减少 APK 大小，你应该都去了解一下，但使用 ProGuard（混淆）来移除未使用的代码对 nstant Apps（即使应用程序）而言却是必不可少的，通过丢弃那些你从来不会使用的导入库和代码将有助于缩减所有的这些依赖。</p>
+<p>即使<a href="https://medium.com/google-developers/troubleshooting-proguard-issues-on-android-bce9de4f8a74" target="_blank" rel="noopener">对于常规项目</a>配置 ProGuard（混淆）也是很有挑战性的，更何况是 Instant App（即时应用），当你启动的时候，你几乎肯定会遇到构建失败或者程序崩溃的情况。当 ProGuard（混淆）集成到 Android 构建中时，新的 <code>com.android.feature</code> Gradle 插件（用于构建 AIA （安卓即时应用程序）模块）根本不存在，并且 ProGuard（混淆）没有考虑模块在运行时如何加载在一起。</p>
+<p>幸运的是，你可以一步一步按照下面的流程进行操作，这样可以更轻松地为你的 Instant App（即时应用程序）配置 ProGuard（混淆），本文将对此进行概述。</p>
+<h3><span id="问题剖析-两种不同的构建方式">问题剖析 － 两种不同的构建方式</span></h3><p>在一个典型的场景中，在模块化应用程序并使用新的 Gradle 插件后，您的项目结构将如下所示：</p>
+<p><img src="https://cdn-images-1.medium.com/max/800/1*6smk7bsLQmg1kIipUR_V6w.png" alt=""></p>
+<p>一个典型的多功能安装 + 即时应用程序项目。</p>
+<p>在共享的即时应用程序/可安装应用程序项目中，功能模块替换旧的 <code>com.android.library</code> 模块。</p>
+<p><strong>当构建一个可安装的应用程序时，ProGuard（混淆）会在构建过程结束时运行</strong>。功能模块的行为与库相似，它们都将代码和资源提供给编译的最后阶段，在应用程序模块中这些都发生在将所有东西打包成一个 APK 之前。在这种情况下，ProGuard（混淆）能够分析你的整个代码库，找出哪些类被使用，哪些可以被安全地删除。</p>
+<p><strong>在即时应用程序构建中，每个功能模块都会生成自己的 APK。</strong>因此，与可安装的应用程序构建相反，<strong>ProGuard（混淆）可以独立运行在每个功能模块的代码中</strong>。例如：base feature 编译，代码缩减和打包发生时无需查看 feature 1 和 2 中包含的任何代码。</p>
+<p>简单地说：如果你的 base feature 包含的公共元素（例如 AppCompat 小部件）仅在功能 1 和/或功能 2 中使用但并未在基本功能本身中，则这些元素将被 ProGuard（混淆）删除，导致运行时崩溃。</p>
+<p>现在我们明白了为什么 ProGuard（混淆）会失败了，是时候解决这个问题了：确保我们为项目配置添加必要的保留规则，<strong>以防止在不同模块（在一个模块中定义，在另一个中使用）之间的类被移除或混淆。</strong></p>
+<h3><span id="层层深入的解决方案">层层深入的解决方案</span></h3><h4><span id="1-在你构建你的可安装程序中启用-proguard混淆并修复所有的运行时异常">1. 在你构建你的可安装程序中启用 ProGuard（混淆）并修复所有的运行时异常</span></h4><p>这是最困难的部分，也是唯一不容易复现的部分，因为每个项目所需的 ProGuard（混淆）配置规则会有所不同。我建议在处理 ProGuard（混淆）错误前熟读 <a href="https://developer.android.com/studio/build/shrink-code.html" target="_blank" rel="noopener">Android Studio 文档</a>，<a href="https://www.guardsquare.com/en/proguard/manual/introduction" target="_blank" rel="noopener">ProGuard （混淆）手册</a> 以及我的<a href="https://medium.com/google-developers/troubleshooting-proguard-issues-on-android-bce9de4f8a74" target="_blank" rel="noopener">上一篇文章</a> 。</p>
+<p>接下来我们将在即时应用程序 ProGuard（混淆）配置来自可安装应用中的规则。</p>
+<h4><span id="2-为你所有的即时应用功能启用-proguard混淆">2. 为你所有的即时应用功能启用 ProGuard（混淆）</span></h4><p>在可安装的应用程序版本构建过程中，ProGuard（混淆）只运行一次：在使用 <code>com.android.application</code> 插件的模块中。在即时应用程序构建过程中，我们需要将 ProGuard（混淆）配置添加到所有功能模块，因为它们都会生成 APK。</p>
+<p>打开每个 <code>com.android.feature</code> 模块中的 <code>build.gradle</code> 文件，并为它们添加以下配置：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">android</span> &#123;</span><br><span class="line">  <span class="section">buildTypes</span> &#123;</span><br><span class="line">    <span class="section">release</span> &#123;</span><br><span class="line">      <span class="attribute">minifyEnabled</span> <span class="literal">true</span></span><br><span class="line">      proguardFiles getDefaultProguardFile(<span class="string">'proguard-android.txt'</span>), <span class="string">'aia-proguard-rules.pro'</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在上面的代码片段中，我选择了一个名为 <code>aia-proguard-rules.pro</code> 的文件用于我的 Android Instant App（安卓即时应用程序）专用 ProGuard（混淆）配置。对于该文件的初始内容，您应该复制并粘贴可安装应用程序中的规则（从本指南的第 1 步中）。</p>
+<p>如果你愿意，不必为每个功能创建单独的规则文件，您可以使用相对路径（例如「../ aia-proguard-rules.pro」）将所有功能模块指向单个文件。</p>
+<h4><span id="3-为从代码中使用了跨模块的类添加保留规则">3. 为从代码中使用了跨模块的类添加保留规则</span></h4><p>我们需要从功能 APKs 中找出使用基本模块中的哪些类。你可以通过检查来源手动追踪，但对于大型项目这种方法是不可行的。窍门是使用 Android SDK 中提供的工具来近乎自动化的执行这个操作。</p>
+<p>首先，准备好一个调试版本（或者没有启用 ProGuard（混淆）的调试版本）。解压 ZIP 文件（通常在 <code>&lt;instant-module-name&gt; / build / outputs / apks / debug</code> 中找到），以便你可以轻松访问这些 feature 和 base APK。。</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ unzip instant-debug.zip</span><br><span class="line">Archive: instant-debug.zip</span><br><span class="line">  inflating: base-debug.apk</span><br><span class="line">  inflating: main-debug.apk</span><br><span class="line">  inflating: detail-debug.apk</span><br></pre></td></tr></table></figure>
+<p>每个 APK 都包含一个（或多个）<code>classes.dex</code> 文件，该文件包含从其构建的模块的所有代码。有了关于 <em>DEX</em> 格式和<a href="https://developer.android.com/studio/command-line/apkanalyzer.html" target="_blank" rel="noopener">命令行 APK 分析器</a>（一个分析 APK 中 DEX 文件的工具）的一些知识，我们可以很容易地找到所选模块中哪些被使用了但没有定义的类。我们来看看 <em>detail</em> 模块的 DEX 内容：</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ ~/Android/Sdk/tools/bin/apkanalyzer dex packages detail-debug.apk</span><br><span class="line">P d <span class="number">23</span> <span class="number">37</span> <span class="number">3216</span> com<span class="selector-class">.example</span><span class="selector-class">.android</span><span class="selector-class">.unsplash</span></span><br><span class="line">C d <span class="number">10</span> <span class="number">20</span> <span class="number">1513</span> com<span class="selector-class">.example</span><span class="selector-class">.android</span><span class="selector-class">.unsplash</span><span class="selector-class">.DetailActivity</span></span><br><span class="line">M d <span class="number">1</span>  <span class="number">1</span>  <span class="number">70</span>   com<span class="selector-class">.example</span><span class="selector-class">.android</span><span class="selector-class">.unsplash</span><span class="selector-class">.DetailActivity</span> &lt;init&gt;()</span><br><span class="line">...</span><br><span class="line">P r <span class="number">0</span> <span class="number">8</span> <span class="number">196</span> android<span class="selector-class">.support</span><span class="selector-class">.v4</span><span class="selector-class">.view</span></span><br><span class="line">C r <span class="number">0</span> <span class="number">8</span> <span class="number">196</span> android<span class="selector-class">.support</span><span class="selector-class">.v4</span><span class="selector-class">.view</span><span class="selector-class">.ViewPager</span></span><br></pre></td></tr></table></figure>
+<p>输出结果显示了 (P)ackages，(C)lasses 以及 (M)ethods（上文第 1 列中的 <em>P / C / M</em> ）是被这个文件所 (d)efined（定义）又或者仅仅被 (r)eferenced（引用）（上文第 2 列中的 <em>s / r</em> ）。</p>
+<p><em>referenced</em> 类只能来自两个地方：Android 框架或其他模块，这取决于…答对了！使用一点 shell 魔法（我在后面的所有命令都是基于 Linux 系统的 bash命令），我们可以得到 ProGuard（混淆）规则中需要保留的类的列表：</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ apkanalyzer dex packages detail-<span class="built_in">debug</span>.apk <span class="title">| grep "^C r" |</span> cut -f4</span><br><span class="line">com.example.<span class="keyword">android.unsplash.ui.pager.DetailViewPagerAdapter</span></span><br><span class="line"><span class="keyword">com.example.android.unsplash.ui.DetailSharedElementEnterCallback</span></span><br><span class="line"><span class="keyword">com.example.android.unsplash.data.PhotoService</span></span><br><span class="line"><span class="keyword">android.support.v4.view.ViewPager</span></span><br><span class="line"><span class="keyword">android.transition.Slide</span></span><br><span class="line"><span class="keyword">android.transition.TransitionSet</span></span><br><span class="line"><span class="keyword">android.transition.Fade</span></span><br><span class="line"><span class="keyword">android.app.Activity</span></span><br><span class="line"><span class="keyword">...</span></span><br></pre></td></tr></table></figure>
+<p>我们可以通过任何手段摆脱哪些来自框架的类（我们不需要包含这些规则，因为它们不是应用程序 APK 的一部分），比如 <code>android.app.Activity</code>？因此我们可以先通过 SDK 中的 android.jar 获取框架类的列表来进行过滤：</p>
+<figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ jar tf ~/Android/Sdk/platforms/android-27/android.jar | sed s/.<span class="keyword">class</span>$<span class="comment">// | sed -e s-/-.-g</span></span><br><span class="line">java.io.InterruptedIOException</span><br><span class="line">java.io.FileNotFoundException</span><br><span class="line">...</span><br><span class="line">android.<span class="keyword">app</span>.Activity</span><br><span class="line">android.<span class="keyword">app</span>.MediaRouteButton</span><br><span class="line">android.<span class="keyword">app</span>.AlertDialog<span class="variable">$Builder</span></span><br><span class="line">android.<span class="keyword">app</span>.Notification<span class="variable">$InboxStyle</span></span><br></pre></td></tr></table></figure>
+<p>最后使用<code>[comm](https://linux.die.net/man/1/comm)</code> 命令（逐行比较两个已排序的文件）列出仅存在于第一个列表中的类，通过管道按照前两个命令输出的排序进行输入：</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ comm -<span class="number">23</span> &lt;(apkanalyzer dex packages detail-<span class="keyword">debug</span>.apk | <span class="keyword">grep</span> <span class="string">"^C r"</span> | cut -f4 | <span class="keyword">sort</span>) &lt;(jar <span class="keyword">tf</span> ~/Android/Sdk/platforms/android-<span class="number">27</span>/android.jar | sed s/.class$// | sed -<span class="keyword">e</span> s-/-.-g | <span class="keyword">sort</span>)</span><br><span class="line">android.support.v4.<span class="keyword">view</span>.ViewPager</span><br><span class="line"><span class="keyword">com</span>.example.android.unsplash.data.PhotoService</span><br><span class="line"><span class="keyword">com</span>.example.android.unsplash.ui.DetailSharedElementEnterCallback</span><br><span class="line"><span class="keyword">com</span>.example.android.unsplash.ui.pager.DetailViewPagerAdapter</span><br></pre></td></tr></table></figure>
+<p>唷！谁会不喜欢 shell 中的一些文本处理呢？剩下的就是取出输出的每一行，并将其转换为 <code>aia-proguard-rules.pro</code> 文件中的 ProGuard（混淆）保留规则。 它看起来应该像这样：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">-keep, includedescriptorclasses <span class="class"><span class="keyword">class</span> <span class="title">android</span>.<span class="title">support</span>.<span class="title">v4</span>.<span class="title">view</span>.<span class="title">ViewPager</span> </span>&#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">protected</span> *;</span><br><span class="line">&#125;</span><br><span class="line">-keep, includedescriptorclasses <span class="class"><span class="keyword">class</span> <span class="title">com</span>.<span class="title">example</span>.<span class="title">android</span>.<span class="title">unsplash</span>.<span class="title">data</span>.<span class="title">PhotoService</span> </span>&#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">protected</span> *;</span><br><span class="line">&#125;</span><br><span class="line">#and so on <span class="keyword">for</span> every <span class="class"><span class="keyword">class</span> <span class="title">in</span> <span class="title">the</span> <span class="title">output</span>…</span></span><br></pre></td></tr></table></figure>
+<h4><span id="4-为从资源文件中出现的跨模块类添加保留规则">4. 为从资源文件中出现的跨模块类添加保留规则</span></h4><p>我们差不多完成了，但还有一个细节需要我们处理。有时我们偶尔会使用 Android 资源中的类，例如从 XML 布局文件中实例化一个小部件，但实际上从未实际从代码中引用该类。</p>
+<p>在已安装的应用程序构建中，AAPT（处理资源构建的一部分）会自动为你处理。它为资源文件和 Android Manifest 中使用的类生成所需的 ProGuard（混淆）规则，但在构建即时应用程序的情况下，它们最终可能会出现在错误的模块中。</p>
+<p>要解决这个问题，首先要启用 ProGuard（混淆）来开发即时应用程序（例如使用刚刚在前面步骤中设置的构建方式）。然后进入每个模块的构建文件夹，找到 <code>aapt_rules.txt</code> 文件（查看与此类似的路径：<code>build / intermediates / proguard-rules / feature / release / aapt_rules.txt</code>）并将其内容复制并粘贴到你的<code>aia-proguard-rules.pro</code>配置中。</p>
+<h4><span id="5-新功能禁用非基本模块中的混淆">5. 新功能：禁用非基本模块中的混淆</span></h4><p>现在看来，我在我的指南中遗漏了一个重要的（现在很明显就发现了）的点。由于非基本模块会被独立地 ProGuard（混淆），因此这些模块中的类可以在混淆期间轻松地分配相同的名称。</p>
+<p>例如，在模块 <em>detail</em> 中，名为 <code>com.sample.DetailActivity</code> 的类变为<code>com.sample.a</code>，而在模块 <em>main</em> 中，类  <code>com.sample.MainActivity</code> 也变为 <code>com.sample.a</code>。这可能会在运行时导致 <em>ClassCastException</em> 或其他奇怪的行为，因为只能有一个结果类将会被加载和使用。</p>
+<p>有两种方法可以做到这一点。更好的方法是在完整的，可安装的应用程序中重新使用 ProGuard（混淆）映射文件，但设置和维护起来很困难。更简单的方法是简单地禁用非基本特征中的混淆。因此，由于类和方法名较长，你的 APK 会稍微大一点，但你仍然享受这删除代码带来的好处，这是最重要的部分。</p>
+<p>要为非基本模块禁用混淆处理，请将此规则添加到其ProGuard（混淆）配置中：</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="deletion">-dontobfuscate</span></span><br></pre></td></tr></table></figure>
+<p>如果你在基本模块和非基本模块之间有共享配置文件，我建议你创建一个单独的配置文件。基础模块仍然可以使用混淆。你可以在 build.gradle 中指定其他文件：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">release</span> &#123;</span><br><span class="line">  <span class="attribute">minifyEnabled</span> <span class="literal">true</span></span><br><span class="line">  signingConfig signingConfigs.<span class="literal">debug</span></span><br><span class="line">  proguardFiles getDefaultProguardFile(<span class="string">"proguard-android.txt"</span>), <span class="string">"../instant/proguard.pro"</span>, <span class="string">"non-base.pro"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4><span id="6-构建并测试你的即时应用程序">6. 构建并测试你的即时应用程序</span></h4><p>如果你按照步骤 1 中进行了最初的 ProGuard（混淆）设置，并且正确执行了步骤 2-4，那么到目前为止，你应该拥有一个较小的，经过优化的即时应用，该应用不会因 ProGuard（混淆）问题而崩溃。请记住通过运行应用程序并检查所有可能的情况来彻底进行测试，因为某些错误只能在运行时发生。</p>
+<hr>
+<p>希望本指南能够让你更好地理解为什么 ProGuard（混淆）可以使你的即时应用程序崩溃。遵循这些步骤应该能带你完成构建，并防止你的即时应用程序崩溃。</p>
+<p>你可以在 GitHub 上看看最新的一些使用 ProGuard（混淆）配置的<a href="https://github.com/googlesamples/android-instant-apps/blob/master/multi-feature-module/proguard.pro" target="_blank" rel="noopener">即时应用示例</a> 来和你的相比较，或者练习本文中介绍的相关示例项目的方法。</p>
+<p>我承认可以通过设置每个方法的保留规则而不是每个类来改进上面的解决方案（引用方法列表的命令是：<code>apkanalyzer dex packages detail-debug.apk | grep&quot;^ M r&quot;| cut - f4</code>），这可能节省出更大的空间。但这会让本教程的其余部分（例如筛选框架类）变得更加复杂，所以我将它作为练习给读者你。</p>
+<hr>
+<blockquote>
+<p><a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a> 是一个翻译优质互联网技术文章的社区，文章来源为 <a href="https://juejin.im" target="_blank" rel="noopener">掘金</a> 上的英文分享文章。内容覆盖 <a href="https://github.com/xitu/gold-miner#android" target="_blank" rel="noopener">Android</a>、<a href="https://github.com/xitu/gold-miner#ios" target="_blank" rel="noopener">iOS</a>、<a href="https://github.com/xitu/gold-miner#前端" target="_blank" rel="noopener">前端</a>、<a href="https://github.com/xitu/gold-miner#后端" target="_blank" rel="noopener">后端</a>、<a href="https://github.com/xitu/gold-miner#区块链" target="_blank" rel="noopener">区块链</a>、<a href="https://github.com/xitu/gold-miner#产品" target="_blank" rel="noopener">产品</a>、<a href="https://github.com/xitu/gold-miner#设计" target="_blank" rel="noopener">设计</a>、<a href="https://github.com/xitu/gold-miner#人工智能" target="_blank" rel="noopener">人工智能</a>等领域，想要查看更多优质译文请持续关注 <a href="https://github.com/xitu/gold-miner" target="_blank" rel="noopener">掘金翻译计划</a>、<a href="http://weibo.com/juejinfanyi" target="_blank" rel="noopener">官方微博</a>、<a href="https://zhuanlan.zhihu.com/juejinfanyi" target="_blank" rel="noopener">知乎专栏</a>。</p>
+</blockquote>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/2018/03/13/翻译AndroidTv/" data-toggle="tooltip" data-placement="top" title="【译】利用 Android 构建 TV 的未来">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- disqus comment start -->
+                
+                    <div class="comment">
+                        <div id="disqus_thread" class="disqus-thread"></div>
+                    </div>
+                
+                <!-- disqus comment end -->
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+    
+      <aside id="sidebar">
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Android" title="Android">Android</a>
+                        
+                          <a class="tag" href="/tags/#掘金翻译计划" title="掘金翻译计划">掘金翻译计划</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://beantech.org" target="_blank">Bean Tech</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- disqus embedded js code start (one page only need to embed once) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "jayzhaoboy";
+    var disqus_identifier = "http://jayzhaoboy.cn/2018/03/13/翻译Android混淆/";
+    var disqus_url = "http://jayzhaoboy.cn/2018/03/13/翻译Android混淆/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus embedded js code start end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/JayZhaoBoy">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; JayZhao 2018
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://jayzhaoboy.cn/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'jayzhaoboy.cn';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
