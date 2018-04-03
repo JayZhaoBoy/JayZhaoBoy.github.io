@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Android, Blog, JayZ">
+    <meta name="keyword"  content="">
+    <link rel="shortcut icon" href="/img/j_icon.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          LRU原理及Java实现 - JayZhao的博客 | JayZ Blog
+        
+    </title>
+
+    <link rel="canonical" href="http://jayzhaoboy.cn/2018/04/03/LRU原理及Java实现/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/header_img/code-bg2.jpg')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Android" title="Android">Android</a>
+                            
+                              <a class="tag" href="/tags/#Java" title="Java">Java</a>
+                            
+                        </div>
+                        <h1>LRU原理及Java实现</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by JayZhao on
+                            2018-04-03
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">JayZ Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h1><span id="lru原理及java实现">LRU原理及Java实现</span></h1><h2><span id="什么是-lru">什么是 LRU ？</span></h2><p>LRU：Least Recent Used（最近最少使用）然后其他的我就不多介绍了。写这篇文章的背景也是因为今天在知乎看到了一位大佬写的文章，觉得写的特别好，但是根据大佬的解释又有了自己的一些理解。所以在此总结一下，能力有限，或许有不足之处，望请见谅。先献上大佬链接：<a href="https://zhuanlan.zhihu.com/p/34133067?group_id=956610327769559040" target="_blank" rel="noopener">LRU 原理和 Redis 实现</a>这篇文章对 LRU 的介绍十分透彻，以及写出了如何在 Java 和 Redis 中的实现，由于对 Redis 不甚了解，就不班门弄斧了，只对 Java 部分进行探讨。</p>
+<h2><span id="java-代码实现">Java 代码实现</span></h2><p>文中介绍了使用 HashMap 加 双向链表的实现方式，为什么采用这种方式也介绍的十分清楚，我先盗用其中的几张图展示一下：</p>
+<p><img src="$res/map.jpg" alt="map"></p>
+<p><img src="$res/linked.jpg" alt="linked"></p>
+<p>所以要不咋说有图有真相呢？<br>思路是根据 key 通过 hashMap 保证保存和获取的是同一个对象，文中说的是时间 O(1)倒不是很明白。map 中的 value 存储的是 对应的 LRU 存储中槽的位置。而 LRU 的存储双向链表中，h 代表头部，t 代表尾部，链表的长度是一定的，每次默认插入的位置都是在头部，超出范围则淘汰底部。</p>
+<p>核心步骤（文中原话）：</p>
+<ol>
+<li><p>save(key)，首先通过 hash 算法，在key space 找到 key，并且尝试把数据存储到LRU空间，如果LRU空间足够，则不需要淘汰旧的内容；如果缓存空间不足，会淘汰掉 tail 指向的内容，并更新队头，存储后返回使用槽下标，更新key space 的value。</p>
+</li>
+<li><p>get(key)，通过 hash 找到 key，然后通过 value 找到 LRU空间对应的槽，更新LRU指向关系。</p>
+</li>
+</ol>
+<p>原文中的 Java 代码实现：</p>
+<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title">DLinkedNode</span> &#123;</span><br><span class="line">	<span class="keyword">int</span> key;</span><br><span class="line">	<span class="keyword">int</span> <span class="keyword">value</span>;</span><br><span class="line">	DLinkedNode pre;</span><br><span class="line">	DLinkedNode post;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>LRU Cache</strong></p>
+<figure class="highlight crmsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br></pre></td><td class="code"><pre><span class="line">public class LRUCache &#123;</span><br><span class="line">   </span><br><span class="line">    private Hashtable<span class="tag">&lt;Integer, DLinkedNode&gt;</span></span><br><span class="line">            cache = new Hashtable<span class="tag">&lt;Integer, DLinkedNode&gt;</span>();</span><br><span class="line">    private int count;</span><br><span class="line">    private int capacity;</span><br><span class="line">    private DLinkedNode head, tail;</span><br><span class="line"></span><br><span class="line">    public LRUCache(int capacity) &#123;</span><br><span class="line">        this.count = <span class="number">0</span>;</span><br><span class="line">        this.capacity = capacity;</span><br><span class="line"></span><br><span class="line">        head = new DLinkedNode();</span><br><span class="line">        head.pre = null;</span><br><span class="line"></span><br><span class="line">        tail = new DLinkedNode();</span><br><span class="line">        tail.post = null;</span><br><span class="line"></span><br><span class="line">        head.post = tail;</span><br><span class="line">        tail.pre = head;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public int get(int key) &#123;</span><br><span class="line"></span><br><span class="line">        DLinkedNode <span class="keyword">node</span> <span class="title">= cache</span>.get(key);</span><br><span class="line">        if(<span class="keyword">node</span> <span class="title">== null</span>)&#123;</span><br><span class="line">            return -<span class="number">1</span>; // should raise exception here.</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        // move the accessed <span class="keyword">node</span> <span class="title">to</span> the head;</span><br><span class="line">        this.moveToHead(<span class="keyword">node</span><span class="title">);</span></span><br><span class="line"><span class="title"></span></span><br><span class="line"><span class="title">        return</span> <span class="keyword">node</span>.<span class="title">value</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    public void set(int key, int value) &#123;</span><br><span class="line">        DLinkedNode <span class="keyword">node</span> <span class="title">= cache</span>.get(key);</span><br><span class="line"></span><br><span class="line">        if(<span class="keyword">node</span> <span class="title">== null</span>)&#123;</span><br><span class="line"></span><br><span class="line">            DLinkedNode newNode = new DLinkedNode();</span><br><span class="line">            newNode.key = key;</span><br><span class="line">            newNode.value = value;</span><br><span class="line"></span><br><span class="line">            this.cache.put(key, newNode);</span><br><span class="line">            this.addNode(newNode);</span><br><span class="line"></span><br><span class="line">            ++count;</span><br><span class="line"></span><br><span class="line">            if(count &gt; capacity)&#123;</span><br><span class="line">                // pop the tail</span><br><span class="line">                DLinkedNode tail = this.popTail();</span><br><span class="line">                this.cache.remove(tail.key);</span><br><span class="line">                --count;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;else&#123;</span><br><span class="line">            // update the value.</span><br><span class="line">            <span class="keyword">node</span>.<span class="title">value</span> = value;</span><br><span class="line">            this.moveToHead(<span class="keyword">node</span><span class="title">);</span></span><br><span class="line"><span class="title">        &#125;</span></span><br><span class="line"><span class="title">    &#125;</span></span><br><span class="line"><span class="title">    /**</span></span><br><span class="line"><span class="title">     * Always</span> add the new <span class="keyword">node</span> <span class="title">right</span> after head;</span><br><span class="line">     */</span><br><span class="line">    private void addNode(DLinkedNode <span class="keyword">node</span><span class="title">)&#123;</span></span><br><span class="line"><span class="title">        node</span>.pre = head;</span><br><span class="line">        <span class="keyword">node</span>.<span class="title">post</span> = head.post;</span><br><span class="line"></span><br><span class="line">        head.post.pre = <span class="keyword">node</span><span class="title">;</span></span><br><span class="line"><span class="title">        head</span>.post = <span class="keyword">node</span><span class="title">;</span></span><br><span class="line"><span class="title">    &#125;</span></span><br><span class="line"><span class="title"></span></span><br><span class="line"><span class="title">    /**</span></span><br><span class="line"><span class="title">     * Remove</span> an existing <span class="keyword">node</span> <span class="title">from</span> the linked list.</span><br><span class="line">     */</span><br><span class="line">    private void removeNode(DLinkedNode <span class="keyword">node</span><span class="title">)&#123;</span></span><br><span class="line"><span class="title">        DLinkedNode</span> pre = <span class="keyword">node</span>.<span class="title">pre</span>;</span><br><span class="line">        DLinkedNode post = <span class="keyword">node</span>.<span class="title">post</span>;</span><br><span class="line"></span><br><span class="line">        pre.post = post;</span><br><span class="line">        post.pre = pre;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * Move certain <span class="keyword">node</span> <span class="title">in</span> between to the head.</span><br><span class="line">     */</span><br><span class="line">    private void moveToHead(DLinkedNode <span class="keyword">node</span><span class="title">)&#123;</span></span><br><span class="line"><span class="title">        this</span>.removeNode(<span class="keyword">node</span><span class="title">);</span></span><br><span class="line"><span class="title">        this</span>.addNode(<span class="keyword">node</span><span class="title">);</span></span><br><span class="line"><span class="title">    &#125;</span></span><br><span class="line"><span class="title"></span></span><br><span class="line"><span class="title">    // pop</span> the current tail.</span><br><span class="line">    private DLinkedNode popTail()&#123;</span><br><span class="line">        DLinkedNode res = tail.pre;</span><br><span class="line">        this.removeNode(res);</span><br><span class="line">        return res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但是看完代码我们发现，实现方式并不是文中所说的，map 的 value 存储的是 LRU 中存储的槽的位置，而是链表本身。而且因为文中的 value 用的是 int 值，就变得更具迷惑性。这里的 value 代表的应该是需要存储的数据对象。<br>——————————————————————————————<br>（2018.3.30更新）割～原文作者已经做了相应的更改及配图</p>
+<h2><span id="那么问题来了">那么问题来了</span></h2><ul>
+<li>为什么采用 HashMap + 双向链表实现？好处在哪里？</li>
+<li>为什么 map 中的 value 存储的不是槽的位置而是双向链表的一个节点呢？</li>
+<li>数组可以实现吗（同队列和列表）</li>
+<li>用单向链表可以实现么？</li>
+<li>LinkedHashMap可以实现吗？</li>
+</ul>
+<h3><span id="为什么为什么采用-hashmap-双向链表实现好处在哪里">为什么为什么采用 HashMap + 双向链表实现？好处在哪里？</span></h3><p>好处先不说，先去分析以下几种方式</p>
+<h3><span id="为什么-map-中的-value-存储的不是槽的位置而是双向链表的一个节点呢">为什么 map 中的 value 存储的不是槽的位置而是双向链表的一个节点呢？</span></h3><p>因为双向链表我们在插入的时候就保证了插入的顺序，而且链表本身虽然是有序的，但不像数组和列表一样是有明确的索引的，然而双向链表的特点：一个节点既是节点本身，也是整个链表，所以 value 也就相当于持有了链表的索引。如果在单独进行索引的存储，还要维护索引的更新和通过索引去查找，显得有些多此一举。</p>
+<h3><span id="列表可以实现吗同队列和数组">列表可以实现吗（同队列和数组）</span></h3><p>在程序的世界好像没什么是不可能的，所以答案是肯定的。<br>代码其实和用链表非常类似，但还是写一下吧，这里暂时就不考虑线程安全的问题了。So：</p>
+<figure class="highlight processing"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> class TData&lt;T&gt; &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">String</span> <span class="built_in">key</span>;</span><br><span class="line">    <span class="keyword">private</span> T t;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> TData(<span class="keyword">String</span> <span class="built_in">key</span>, T t) &#123;</span><br><span class="line">        <span class="keyword">this</span>.<span class="built_in">key</span> = <span class="built_in">key</span>;</span><br><span class="line">        <span class="keyword">this</span>.t = t;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">String</span> getKey() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">key</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> setKey(<span class="keyword">String</span> <span class="built_in">key</span>) &#123;</span><br><span class="line">        <span class="keyword">this</span>.<span class="built_in">key</span> = <span class="built_in">key</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> T getT() &#123;</span><br><span class="line">        <span class="keyword">return</span> t;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> setT(T t) &#123;</span><br><span class="line">        <span class="keyword">this</span>.t = t;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight processing"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> class LRUCacheByList&lt;T&gt; &#123;</span><br><span class="line">    <span class="comment">// 泛型 T 表示要存储的数据类型</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> List&lt;TData&lt;T&gt;&gt; mlist;</span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">int</span> count = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 存储大小</span></span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">int</span> capacity;</span><br><span class="line">    <span class="keyword">private</span> Map&lt;<span class="keyword">String</span>, TData&lt;T&gt;&gt; <span class="built_in">map</span> = <span class="keyword">new</span> <span class="keyword">HashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> LRUCacheByList(<span class="built_in">int</span> capacity) &#123;</span><br><span class="line">        <span class="keyword">this</span>.capacity = capacity;</span><br><span class="line">        mlist = <span class="keyword">new</span> ArrayList&lt;&gt;(capacity);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="built_in">set</span>(<span class="keyword">String</span> <span class="built_in">key</span>, T t) &#123;</span><br><span class="line">        TData&lt;T&gt; td = <span class="built_in">map</span>.<span class="built_in">get</span>(<span class="built_in">key</span>);</span><br><span class="line">        <span class="keyword">if</span> (td != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="comment">// 已经包含则删除原来的，在将其添加到最开始位置</span></span><br><span class="line">            mlist.remove(td);</span><br><span class="line">            mlist.<span class="built_in">add</span>(<span class="number">0</span>, td);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            td = <span class="keyword">new</span> TData&lt;&gt;(<span class="built_in">key</span>, t);</span><br><span class="line">            count = mlist.<span class="built_in">size</span>();</span><br><span class="line">            <span class="keyword">if</span> (count &lt; capacity) &#123; <span class="comment">//不包含且容量未满，直接添加到最开始位置</span></span><br><span class="line">                mlist.<span class="built_in">add</span>(<span class="number">0</span>, td);</span><br><span class="line">                <span class="built_in">map</span>.put(<span class="built_in">key</span>, td);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123; <span class="comment">//不包含且容量已满，先删除末尾位置然后添加到最开始位置</span></span><br><span class="line">                TData&lt;T&gt; r_td = mlist.<span class="built_in">get</span>(capacity - <span class="number">1</span>);</span><br><span class="line">                <span class="keyword">String</span> k = r_td.getKey();</span><br><span class="line">                <span class="built_in">map</span>.remove(k);</span><br><span class="line">                mlist.<span class="built_in">add</span>(<span class="number">0</span>, td);</span><br><span class="line">                <span class="built_in">map</span>.put(<span class="built_in">key</span>, td);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> TData&lt;T&gt; <span class="built_in">get</span>(<span class="keyword">String</span> <span class="built_in">key</span>) &#123;</span><br><span class="line">        TData&lt;T&gt; td = <span class="built_in">map</span>.<span class="built_in">get</span>(<span class="built_in">key</span>);</span><br><span class="line">        <span class="keyword">if</span> (td != <span class="keyword">null</span>) &#123;</span><br><span class="line">            mlist.remove(td);</span><br><span class="line">            mlist.<span class="built_in">add</span>(<span class="number">0</span>,td);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> td;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>因为list方法封装的原因，操作起来比使用链表的方式简单一些。之所以不采用这种方式是因为我们都知道列表的优点是易于查询，但不宜频繁的进行插入和移除，列表长度短的时候还好。一旦长度变得很大，尤其还要频繁在首部插入数据，内部数组索引要整体后移，对性能的影响还是很大的。</p>
+<h3><span id="单向链表可以实现吗">单向链表可以实现吗？</span></h3><p>因为单向链表只存在下标，所以在链表数据更新的时候按理说是无法进行更新的。比如你获取中间某一位置的对象，你需要将它移除，并将其插入到头部。但是单向链表无法获取上一节点，故无法将其上一节点指向其下一节点。但其实也是有办法的，单向链表也是有序的，只要单独在维护一个 index 的索引，然后每次遍历获得前一节点即可。但这样不仅操作繁琐，亦影响性能。代码这里就不写了。</p>
+<h3><span id="linkedhashmap可以实现吗">LinkedHashMap可以实现吗？</span></h3><p>LinkedHashMap虽然有序，但好像无法更新数据结构，所以应是不行的。</p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                    
+                        <li class="next">
+                            <a href="/2018/03/29/googlePlay指南/" data-toggle="tooltip" data-placement="top" title="【译】Google Play 控制台指南">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <!-- disqus comment start -->
+                
+                    <div class="comment">
+                        <div id="disqus_thread" class="disqus-thread"></div>
+                    </div>
+                
+                <!-- disqus comment end -->
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+    
+      <aside id="sidebar">
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Android" title="Android">Android</a>
+                        
+                          <a class="tag" href="/tags/#Java" title="Java">Java</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://beantech.org" target="_blank">Bean Tech</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- disqus embedded js code start (one page only need to embed once) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "jayzhaoboy";
+    var disqus_identifier = "http://jayzhaoboy.cn/2018/04/03/LRU原理及Java实现/";
+    var disqus_url = "http://jayzhaoboy.cn/2018/04/03/LRU原理及Java实现/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus embedded js code start end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/JayZhaoBoy">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; JayZhao 2018
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("http://jayzhaoboy.cn/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'jayzhaoboy.cn';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
