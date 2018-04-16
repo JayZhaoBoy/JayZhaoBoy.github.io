@@ -2,14 +2,14 @@
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
     <url>
-        <loc>http://jayzhaoboy.cn/tags/%E6%BA%90%E7%A0%81/</loc>
+        <loc>http://jayzhaoboy.cn/tags/Git/</loc>
         <lastmod>2018-02-22T08:51:55.389Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
 
     <url>
-        <loc>http://jayzhaoboy.cn/tags/Git/</loc>
+        <loc>http://jayzhaoboy.cn/tags/%E6%BA%90%E7%A0%81/</loc>
         <lastmod>2018-02-22T08:51:55.389Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
@@ -44,22 +44,29 @@
     </url>
 
     <url>
-        <loc>http://jayzhaoboy.cn/tags/Android/</loc>
-        <lastmod>2018-04-03T07:22:41.461Z</lastmod>
+        <loc>http://jayzhaoboy.cn/tags/Java/</loc>
+        <lastmod>2018-04-10T07:56:39.990Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
 
     <url>
-        <loc>http://jayzhaoboy.cn/tags/Java/</loc>
-        <lastmod>2018-04-03T07:22:41.461Z</lastmod>
+        <loc>http://jayzhaoboy.cn/tags/Android/</loc>
+        <lastmod>2018-04-10T07:56:39.990Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
 
     <url>
         <loc>http://jayzhaoboy.cn/tags/JavaScript/</loc>
-        <lastmod>2018-04-10T07:53:34.074Z</lastmod>
+        <lastmod>2018-04-16T02:05:53.104Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>http://jayzhaoboy.cn/tags/Es6/</loc>
+        <lastmod>2018-04-16T02:05:53.104Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
